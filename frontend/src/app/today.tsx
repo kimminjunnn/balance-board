@@ -3,7 +3,7 @@ import { View, Text, Image, StyleSheet, Pressable } from "react-native";
 import BottomSheet from "@gorhom/bottom-sheet";
 import SettingBottomSheet from "@/components/SettingBottomSheet";
 
-type todayState = "idle" | "setting" | "done" | "locked";
+type todayState = "idle" | "setting" | "locked";
 
 export default function TodayScreen() {
   const [todayState, setTodayState] = useState<todayState>("idle");
@@ -15,7 +15,7 @@ export default function TodayScreen() {
   };
 
   const handleCloseBottomSheet = () => {
-    setTodayState("idle");
+    return;
   };
 
   const handleConfirm = () => {
@@ -50,9 +50,18 @@ export default function TodayScreen() {
       </View>
 
       <View style={styles.bottom}>
-        <Pressable style={styles.setButton} onPress={handlePressSetting}>
-          <Text style={styles.setButtonText}>Set Up Today</Text>
-        </Pressable>
+        {todayState == "idle" || todayState == "setting" ? (
+          <Pressable style={styles.setButton} onPress={handlePressSetting}>
+            <Text style={styles.setButtonText}>Set Up Today</Text>
+          </Pressable>
+        ) : (
+          <Pressable
+            style={styles.setButton}
+            onPress={() => console.log("pressed check my setup")}
+          >
+            <Text style={styles.setButtonText}>Check my Set Up</Text>
+          </Pressable>
+        )}
       </View>
 
       <SettingBottomSheet
