@@ -8,10 +8,11 @@ import ConfirmModal from "./common/ConfirmModal";
 
 type SettingBottomSheetProps = {
   onClose: () => void;
+  onConfirm: () => void;
 };
 
 const SettingBottomSheet = forwardRef<BottomSheet, SettingBottomSheetProps>(
-  ({ onClose }, ref) => {
+  ({ onClose, onConfirm }, ref) => {
     const snapPoints = ["20%", "40%", "60%", "85%"];
     const [isConfirmModalVisible, setIsConfirmModalVisible] =
       useState<boolean>(false);
@@ -26,6 +27,7 @@ const SettingBottomSheet = forwardRef<BottomSheet, SettingBottomSheetProps>(
 
     const handleConfirmModal = () => {
       setIsConfirmModalVisible(false);
+      onConfirm();
     };
 
     return (
@@ -64,8 +66,8 @@ const SettingBottomSheet = forwardRef<BottomSheet, SettingBottomSheetProps>(
 
         <ConfirmModal
           visible={isConfirmModalVisible}
-          title="Confirm"
-          message="Are you sure you want to apply these settings?"
+          title="Are you sure?"
+          message="Do you really want to apply these settings?"
           onClose={handleCloseConfirmModal}
           onConfirm={handleConfirmModal}
         />

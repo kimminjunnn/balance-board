@@ -3,19 +3,24 @@ import { View, Text, Image, StyleSheet, Pressable } from "react-native";
 import BottomSheet from "@gorhom/bottom-sheet";
 import SettingBottomSheet from "@/components/SettingBottomSheet";
 
-type ScreenState = "idle" | "setting" | "done" | "locked";
+type todayState = "idle" | "setting" | "done" | "locked";
 
 export default function TodayScreen() {
-  const [screenState, setScreenState] = useState<ScreenState>("idle");
+  const [todayState, setTodayState] = useState<todayState>("idle");
   const bottomSheetRef = useRef<BottomSheet>(null);
 
   const handlePressSetting = () => {
-    setScreenState("setting");
+    setTodayState("setting");
     bottomSheetRef.current?.snapToIndex(3);
   };
 
   const handleCloseBottomSheet = () => {
-    setScreenState("idle");
+    setTodayState("idle");
+  };
+
+  const handleConfirm = () => {
+    setTodayState("locked");
+    bottomSheetRef.current?.close();
   };
 
   const getToday = () => {
@@ -53,6 +58,7 @@ export default function TodayScreen() {
       <SettingBottomSheet
         ref={bottomSheetRef}
         onClose={handleCloseBottomSheet}
+        onConfirm={handleConfirm}
       />
     </View>
   );
