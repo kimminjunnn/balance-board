@@ -1,9 +1,10 @@
-import { forwardRef } from "react";
+import { forwardRef, useState } from "react";
 import { Text, View, StyleSheet, Pressable } from "react-native";
 import BottomSheet, {
   BottomSheetView,
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
+import ConfirmModal from "./common/ConfirmModal";
 
 type SettingBottomSheetProps = {
   onClose: () => void;
@@ -12,10 +13,21 @@ type SettingBottomSheetProps = {
 const SettingBottomSheet = forwardRef<BottomSheet, SettingBottomSheetProps>(
   ({ onClose }, ref) => {
     const snapPoints = ["20%", "40%", "60%", "85%"];
+    const [isConfirmModalVisible, setIsConfirmModalVisible] =
+      useState<boolean>(false);
 
-    const handleConfirm = () => {
-      return;
+    const handleConfirmBtn = () => {
+      setIsConfirmModalVisible(true);
     };
+
+    const handleCloseConfirmModal = () => {
+      setIsConfirmModalVisible(false);
+    };
+
+    const handleConfirmModal = () => {
+      setIsConfirmModalVisible(false);
+    };
+
     return (
       <BottomSheet
         ref={ref}
@@ -34,7 +46,7 @@ const SettingBottomSheet = forwardRef<BottomSheet, SettingBottomSheetProps>(
 
             <View>
               <Pressable
-                onPress={handleConfirm}
+                onPress={handleConfirmBtn}
                 style={({ pressed }) => [
                   styles.confirmButton,
                   pressed && styles.confirmButtonPressed,
@@ -49,6 +61,14 @@ const SettingBottomSheet = forwardRef<BottomSheet, SettingBottomSheetProps>(
             <Text>Body</Text>
           </View>
         </BottomSheetScrollView>
+
+        <ConfirmModal
+          visible={isConfirmModalVisible}
+          title="Confirm"
+          message="Are you sure you want to apply these settings?"
+          onClose={handleCloseConfirmModal}
+          onConfirm={handleConfirmModal}
+        />
       </BottomSheet>
     );
   },
