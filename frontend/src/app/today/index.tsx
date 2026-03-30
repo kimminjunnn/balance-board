@@ -1,19 +1,35 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { View, Text, Image, StyleSheet, Pressable } from "react-native";
+import BottomSheet from "@gorhom/bottom-sheet";
+import SettingBottomSheet from "@/components/SettingBottomSheet";
 
 type ScreenState = "idle" | "setting" | "done" | "locked";
 
 export default function TodayScreen() {
   const [screenState, setScreenState] = useState<ScreenState>("idle");
+  const bottomSheetRef = useRef<BottomSheet>(null);
 
-  const handlePressSetUp = () => {
+  const handlePressSetting = () => {
     setScreenState("setting");
+    bottomSheetRef.current?.snapToIndex(3);
+  };
+
+  const handleCloseBottomSheet = () => {
+    setScreenState("idle");
+  };
+
+  const getToday = () => {
+    const today = new Date();
+    return `${today.getFullYear()}.${String(today.getMonth() + 1).padStart(
+      2,
+      "0",
+    )}.${String(today.getDate()).padStart(2, "0")}`;
   };
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.dateText}>2026.03.28</Text>
+        <Text style={styles.todayText}>{getToday()}</Text>
 
         {/* <Pressable style={styles.menuButton}>
           <Text style={styles.menuText}>☰</Text>
@@ -29,12 +45,15 @@ export default function TodayScreen() {
       </View>
 
       <View style={styles.bottom}>
-        <Pressable style={styles.setButton} onPress={handlePressSetUp}>
-          <Text style={styles.setButtonText}>세팅하기</Text>
+        <Pressable style={styles.setButton} onPress={handlePressSetting}>
+          <Text style={styles.setButtonText}>Set Up Today</Text>
         </Pressable>
       </View>
 
-      {screenState === "setting" && <Text>세팅중</Text>}
+      <SettingBottomSheet
+        ref={bottomSheetRef}
+        onClose={handleCloseBottomSheet}
+      />
     </View>
   );
 }
@@ -56,7 +75,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
 
-  dateText: {
+  todayText: {
     fontSize: 20,
     fontWeight: "700",
     color: "#222222",
