@@ -4,29 +4,8 @@ import { type BalanceItem } from "@/types/balance-item";
 import BalanceItemList from "../BalanceItemList";
 import AddItemModal from "./AddItemModal";
 
-const initialItems: BalanceItem[] = [
-  {
-    id: "1",
-    leftValue: "love",
-    rightValue: "peace",
-    balance: 3,
-  },
-  {
-    id: "2",
-    leftValue: "growth",
-    rightValue: "rest",
-    balance: 5,
-  },
-  {
-    id: "3",
-    leftValue: "focus",
-    rightValue: "freedom",
-    balance: 7,
-  },
-];
-
 export default function SettingBottomSheetBody() {
-  const [draftItems, setDraftItems] = useState<BalanceItem[]>(initialItems);
+  const [draftItems, setDraftItems] = useState<BalanceItem[]>([]);
   const [isAddModalVisible, setIsAddModalVisible] = useState(false);
 
   const handleOpenAddModal = () => {
@@ -52,7 +31,7 @@ export default function SettingBottomSheetBody() {
       <BalanceItemList items={draftItems} />
 
       <Pressable style={styles.addButton} onPress={handleOpenAddModal}>
-        <Text style={styles.addButtonText}>+ Add Item</Text>
+        <Text style={styles.addButtonText}>Add Item</Text>
       </Pressable>
 
       <AddItemModal

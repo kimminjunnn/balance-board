@@ -5,23 +5,36 @@ type BalanceItemListProps = {
   items: BalanceItem[];
 };
 
+const clampPercent = (value: number) => Math.max(0, Math.min(100, value));
+
 export default function BalanceItemList({ items }: BalanceItemListProps) {
   return (
     <View style={styles.listContainer}>
-      {items.map((item) => (
-        <View key={item.id} style={styles.card}>
-          <View style={styles.valueRow}>
-            <Text style={styles.valueText}>{item.leftValue}</Text>
-            <Text style={styles.arrowText}>↔</Text>
-            <Text style={styles.valueText}>{item.rightValue}</Text>
-          </View>
+      {items.map((item) => {
+        const leftPercent = clampPercent(item.balancePercent);
+        const rightPercent = 100 - leftPercent;
 
-          <View style={styles.balanceRow}>
-            <Text style={styles.balanceLabel}>Balance</Text>
-            <Text style={styles.balanceValue}>{item.balance}</Text>
+        return (
+          <View key={item.id} style={styles.card}>
+            <View style={styles.topRow}>
+              <View style={styles.sideBlock}>
+                <Text style={styles.valueText}>{item.leftValue}</Text>
+                <Text style={styles.leftPercentText}>{leftPercent}%</Text>
+              </View>
+
+              <View style={[styles.sideBlock, styles.rightBlock]}>
+                <Text style={styles.valueText}>{item.rightValue}</Text>
+                <Text style={styles.rightPercentText}>{rightPercent}%</Text>
+              </View>
+            </View>
+
+            <View style={styles.barTrack}>
+              <View style={[styles.leftBar, { width: `${leftPercent}%` }]} />
+              <View style={[styles.rightBar, { width: `${rightPercent}%` }]} />
+            </View>
           </View>
-        </View>
-      ))}
+        );
+      })}
     </View>
   );
 }
@@ -31,39 +44,54 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   card: {
-    backgroundColor: "#FFF7ED",
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
+    padding: 14,
     borderWidth: 1,
-    borderColor: "#FED7AA",
+    borderColor: "#E5E7EB",
+    gap: 12,
   },
-  valueRow: {
+  topRow: {
     flexDirection: "row",
-    alignItems: "center",
     justifyContent: "space-between",
+    alignItems: "center",
+  },
+  sideBlock: {
+    flex: 1,
+  },
+  rightBlock: {
+    alignItems: "flex-end",
   },
   valueText: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "700",
     color: "#111827",
   },
-  arrowText: {
-    fontSize: 16,
-    color: "#9CA3AF",
-  },
-  balanceRow: {
-    marginTop: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  balanceLabel: {
+  leftPercentText: {
+    marginTop: 4,
     fontSize: 14,
-    color: "#6B7280",
-  },
-  balanceValue: {
-    fontSize: 15,
     fontWeight: "700",
-    color: "#EA580C",
+    color: "#F97316",
+  },
+  rightPercentText: {
+    marginTop: 4,
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#3B82F6",
+  },
+  barTrack: {
+    flexDirection: "row",
+    height: 10,
+    borderRadius: 999,
+    backgroundColor: "#E5E7EB",
+    overflow: "hidden",
+  },
+  leftBar: {
+    height: "100%",
+    backgroundColor: "#F97316",
+  },
+  rightBar: {
+    height: "100%",
+    backgroundColor: "#3B82F6",
   },
 });

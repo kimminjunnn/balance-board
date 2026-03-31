@@ -41,16 +41,16 @@ const SettingBottomSheet = forwardRef<BottomSheet, SettingBottomSheetProps>(
       >
         <BottomSheetScrollView style={styles.contentContainer}>
           <SettingBottomSheetHeader onPress={handleConfirmBtn} />
+          <ConfirmModal
+            visible={isConfirmModalVisible}
+            title="Are you sure?"
+            message="Do you really want to apply these settings?"
+            onClose={handleCloseConfirmModal}
+            onConfirm={handleConfirmModal}
+          />
+
           <SettingBottomSheetBody />
         </BottomSheetScrollView>
-
-        <ConfirmModal
-          visible={isConfirmModalVisible}
-          title="Are you sure?"
-          message="Do you really want to apply these settings?"
-          onClose={handleCloseConfirmModal}
-          onConfirm={handleConfirmModal}
-        />
       </BottomSheet>
     );
   },

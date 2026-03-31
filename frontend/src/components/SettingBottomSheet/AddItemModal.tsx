@@ -8,47 +8,186 @@ import {
   Pressable,
 } from "react-native";
 
+import BalanceCrystal from "@/components/BalanceCrystal";
+import BalanceBar from "@/components/BalanceBar";
+
 type AddItemModalProps = {
   visible: boolean;
   onClose: () => void;
   onSubmit: (item: {
     leftValue: string;
     rightValue: string;
-    balance: number;
+    balancePercent: number;
   }) => void;
 };
 
-const clampBalance = (value: number) => Math.max(1, Math.min(9, value));
+type Step = 1 | 2 | 3;
 
 export default function AddItemModal({
   visible,
   onClose,
   onSubmit,
 }: AddItemModalProps) {
-  const [leftValue, setLeftValue] = useState("");
-  const [rightValue, setRightValue] = useState("");
-  const [balanceText, setBalanceText] = useState("5");
+  const [step, setStep] = useState<Step>(1);
+  const [firstValue, setFirstValue] = useState("");
+  const [secondValue, setSecondValue] = useState("");
+  const [inputValue, setInputValue] = useState("");
+
+  // 핵심 상태 (0 ~ 10)
+  const [balanceStartIndex, setBalanceStartIndex] = useState(5);
 
   useEffect(() => {
     if (visible) {
-      setLeftValue("");
-      setRightValue("");
-      setBalanceText("5");
+      setStep(1);
+      setFirstValue("");
+      setSecondValue("");
+      setInputValue("");
+      setBalanceStartIndex(5);
     }
   }, [visible]);
 
-  const handleSubmit = () => {
-    const trimmedLeftValue = leftValue.trim();
-    const trimmedRightValue = rightValue.trim();
-    const parsedBalance = clampBalance(Number(balanceText) || 5);
+  const trimmedInputValue = inputValue.trim();
+  const isStepOneValid = step === 1 && trimmedInputValue.length > 0;
+  const isStepTwoValid = step === 2 && trimmedInputValue.length > 0;
 
-    if (!trimmedLeftValue || !trimmedRightValue) return;
+  const leftPercent = 100 - balanceStartIndex * 10;
+  const rightPercent = balanceStartIndex * 10;
+
+  const handleNext = () => {
+    const trimmed = inputValue.trim();
+    if (!trimmed) return;
+
+    if (step === 1) {
+      setFirstValue(trimmed);
+      setInputValue("");
+      setStep(2);
+      return;
+    }
+
+    if (step === 2) {
+      setSecondValue(trimmed);
+      setInputValue("");
+      setStep(3);
+    }
+  };
+
+  const handleComplete = () => {
+    if (!firstValue || !secondValue) return;
 
     onSubmit({
-      leftValue: trimmedLeftValue,
-      rightValue: trimmedRightValue,
-      balance: parsedBalance,
+      leftValue: firstValue,
+      rightValue: secondValue,
+      balancePercent: leftPercent,
     });
+  };
+
+  const renderStepTitle = () => {
+    if (step === 1) return "Enter your first value";
+    if (step === 2) return "Enter your second value";
+    return "Adjust the balance";
+  };
+
+  const renderStepSubtitle = () => {
+    if (step === 1) return "Choose one value for today";
+    if (step === 2) return "Choose the opposite value";
+    return "Drag to adjust the ratio";
+  };
+
+  const renderStepContent = () => {
+    if (step === 1) {
+      return (
+        <>
+          <View style={styles.centerArea}>
+            <BalanceCrystal
+              position="center"
+              active
+              tone="orange"
+              label={inputValue.trim() || "value"}
+            />
+          </View>
+
+          <TextInput
+            value={inputValue}
+            onChangeText={setInputValue}
+            placeholder="e.g. growth"
+            placeholderTextColor="#9CA3AF"
+            style={styles.input}
+          />
+
+          <Pressable
+            style={[styles.button, !isStepOneValid && styles.disabledButton]}
+            onPress={handleNext}
+            disabled={!isStepOneValid}
+          >
+            <Text style={styles.buttonText}>Confirm</Text>
+          </Pressable>
+        </>
+      );
+    }
+
+    if (step === 2) {
+      return (
+        <>
+          <View style={styles.row}>
+            <BalanceCrystal label={firstValue} position="left" tone="orange" />
+            <BalanceCrystal
+              position="center"
+              active
+              tone="blue"
+              label={inputValue.trim() || "value"}
+            />
+          </View>
+
+          <TextInput
+            value={inputValue}
+            onChangeText={setInputValue}
+            placeholder="e.g. peace"
+            placeholderTextColor="#9CA3AF"
+            style={styles.input}
+          />
+
+          <Pressable
+            style={[styles.button, !isStepTwoValid && styles.disabledButton]}
+            onPress={handleNext}
+            disabled={!isStepTwoValid}
+          >
+            <Text style={styles.buttonText}>Confirm</Text>
+          </Pressable>
+        </>
+      );
+    }
+
+    return (
+      <>
+        {/* 크리스탈 + 퍼센트 */}
+        <View style={styles.row}>
+          <BalanceCrystal
+            label={firstValue}
+            tone="orange"
+            position="left"
+            percent={leftPercent}
+          />
+          <BalanceCrystal
+            label={secondValue}
+            tone="blue"
+            position="right"
+            percent={rightPercent}
+          />
+        </View>
+
+        {/* BalanceBar */}
+        <View style={styles.balanceSection}>
+          <BalanceBar
+            value={balanceStartIndex}
+            onChange={setBalanceStartIndex}
+          />
+        </View>
+
+        <Pressable style={styles.button} onPress={handleComplete}>
+          <Text style={styles.buttonText}>Add</Text>
+        </Pressable>
+      </>
+    );
   };
 
   return (
@@ -59,54 +198,33 @@ export default function AddItemModal({
       onRequestClose={onClose}
     >
       <View style={styles.backdrop}>
-        <View style={styles.modalCard}>
-          <Text style={styles.title}>Add Balance</Text>
-          <Text style={styles.subtitle}>좌우 가치를 입력해줘</Text>
+        <View style={styles.card}>
+          <View style={styles.header}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.title}>{renderStepTitle()}</Text>
+              <Text style={styles.subtitle}>{renderStepSubtitle()}</Text>
+            </View>
 
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Left Value</Text>
-            <TextInput
-              value={leftValue}
-              onChangeText={setLeftValue}
-              placeholder="예: growth"
-              placeholderTextColor="#9CA3AF"
-              style={styles.input}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Right Value</Text>
-            <TextInput
-              value={rightValue}
-              onChangeText={setRightValue}
-              placeholder="예: peace"
-              placeholderTextColor="#9CA3AF"
-              style={styles.input}
-            />
-          </View>
-
-          <View style={styles.inputGroup}>
-            <Text style={styles.label}>Balance (1~9)</Text>
-            <TextInput
-              value={balanceText}
-              onChangeText={setBalanceText}
-              keyboardType="number-pad"
-              placeholder="5"
-              placeholderTextColor="#9CA3AF"
-              style={styles.input}
-              maxLength={1}
-            />
-          </View>
-
-          <View style={styles.buttonRow}>
-            <Pressable style={styles.cancelButton} onPress={onClose}>
-              <Text style={styles.cancelButtonText}>취소</Text>
-            </Pressable>
-
-            <Pressable style={styles.confirmButton} onPress={handleSubmit}>
-              <Text style={styles.confirmButtonText}>추가</Text>
+            <Pressable style={styles.closeButton} onPress={onClose}>
+              <Text style={styles.closeButtonText}>✕</Text>
             </Pressable>
           </View>
+
+          {/* step indicator */}
+          <View style={styles.stepRow}>
+            {[1, 2, 3].map((v) => (
+              <View
+                key={v}
+                style={[
+                  styles.step,
+                  v === step && styles.stepActive,
+                  v < step && styles.stepDone,
+                ]}
+              />
+            ))}
+          </View>
+
+          {renderStepContent()}
         </View>
       </View>
     </Modal>
@@ -120,68 +238,87 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 20,
   },
-  modalCard: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 24,
     padding: 20,
   },
+  header: {
+    flexDirection: "row",
+    gap: 12,
+  },
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "800",
-    color: "#111827",
   },
   subtitle: {
     marginTop: 6,
-    marginBottom: 18,
     fontSize: 14,
     color: "#6B7280",
   },
-  inputGroup: {
-    marginBottom: 14,
+  closeButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
   },
-  label: {
-    marginBottom: 8,
-    fontSize: 14,
-    fontWeight: "600",
+
+  closeButtonText: {
+    fontSize: 16,
+    fontWeight: "700",
     color: "#374151",
+  },
+  stepRow: {
+    flexDirection: "row",
+    gap: 8,
+    marginVertical: 20,
+  },
+  step: {
+    flex: 1,
+    height: 6,
+    backgroundColor: "#E5E7EB",
+    borderRadius: 999,
+  },
+  stepActive: {
+    backgroundColor: "#FDBA74",
+  },
+  stepDone: {
+    backgroundColor: "#F97316",
+  },
+  centerArea: {
+    alignItems: "center",
+    marginBottom: 20,
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 20,
   },
   input: {
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-    color: "#111827",
-    backgroundColor: "#F9FAFB",
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 14,
   },
-  buttonRow: {
-    flexDirection: "row",
-    gap: 10,
-    marginTop: 10,
-  },
-  cancelButton: {
-    flex: 1,
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: "center",
-    backgroundColor: "#F3F4F6",
-  },
-  confirmButton: {
-    flex: 1,
-    borderRadius: 12,
-    paddingVertical: 14,
-    alignItems: "center",
+  button: {
     backgroundColor: "#F97316",
+    padding: 14,
+    borderRadius: 14,
+    alignItems: "center",
   },
-  cancelButtonText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#374151",
+  disabledButton: {
+    backgroundColor: "#FDBA74",
   },
-  confirmButtonText: {
-    fontSize: 15,
-    fontWeight: "700",
-    color: "#FFFFFF",
+  buttonText: {
+    color: "#fff",
+    fontWeight: "800",
+  },
+  balanceSection: {
+    marginBottom: 20,
   },
 });
