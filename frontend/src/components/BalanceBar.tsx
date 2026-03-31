@@ -16,6 +16,7 @@ const TOTAL_BLOCKS = 21;
 const ACTIVE_BLOCKS = 11;
 const MAX_START_INDEX = TOTAL_BLOCKS - ACTIVE_BLOCKS; // 10
 const HALF_ACTIVE = Math.floor(ACTIVE_BLOCKS / 2); // 5
+const CENTER_INDEX = Math.floor(TOTAL_BLOCKS / 2); // 10
 
 const clamp = (value: number, min: number, max: number) =>
   Math.max(min, Math.min(max, value));
@@ -24,6 +25,9 @@ export default function BalanceBar({ value, onChange }: BalanceBarProps) {
   const containerWidthRef = useRef(0);
 
   const startIndex = useMemo(() => clamp(value, 0, MAX_START_INDEX), [value]);
+
+  const isAllLeft = startIndex === 0;
+  const isAllRight = startIndex === MAX_START_INDEX;
 
   const handleLayout = (event: LayoutChangeEvent) => {
     containerWidthRef.current = event.nativeEvent.layout.width;
@@ -35,14 +39,12 @@ export default function BalanceBar({ value, onChange }: BalanceBarProps) {
 
     const blockWidth = containerWidth / TOTAL_BLOCKS;
 
-    // 손가락이 가리키는 "칸의 중심"을 먼저 구함
     const centerIndex = clamp(
       Math.round(x / blockWidth - 0.5),
       0,
       TOTAL_BLOCKS - 1,
     );
 
-    // 손가락 아래에 덩어리의 가운데가 오도록 시작점 계산
     const nextStartIndex = clamp(centerIndex - HALF_ACTIVE, 0, MAX_START_INDEX);
 
     onChange(nextStartIndex);
@@ -79,17 +81,27 @@ export default function BalanceBar({ value, onChange }: BalanceBarProps) {
         {Array.from({ length: TOTAL_BLOCKS }, (_, index) => {
           const isActive =
             index >= startIndex && index < startIndex + ACTIVE_BLOCKS;
-          const isCenter = index === 10;
+          const isCenter = index === CENTER_INDEX;
           const isChunkStart = index === startIndex;
           const isChunkEnd = index === startIndex + ACTIVE_BLOCKS - 1;
+
+          const isLeftSide = index < CENTER_INDEX;
+          const isRightSide = index > CENTER_INDEX;
 
           return (
             <Pressable
               key={index}
               style={[
                 styles.block,
-                isActive && styles.activeBlock,
-                isCenter && styles.centerBlock,
+                isActive && isLeftSide && styles.leftActiveBlock,
+                isActive && isRightSide && styles.rightActiveBlock,
+                isActive &&
+                  isCenter &&
+                  !isAllLeft &&
+                  !isAllRight &&
+                  styles.centerActiveBlock,
+                isActive && isCenter && isAllLeft && styles.leftActiveBlock,
+                isActive && isCenter && isAllRight && styles.rightActiveBlock,
                 isChunkStart && styles.chunkStartBlock,
                 isChunkEnd && styles.chunkEndBlock,
               ]}
@@ -98,8 +110,6 @@ export default function BalanceBar({ value, onChange }: BalanceBarProps) {
                 if (containerWidth <= 0) return;
 
                 const blockWidth = containerWidth / TOTAL_BLOCKS;
-
-                // 탭한 칸 중심으로도 동일하게 동작
                 const tappedCenterX = (index + 0.5) * blockWidth;
                 handleTouchAt(tappedCenterX);
               }}
@@ -125,13 +135,16 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: "#E5E7EB",
   },
-  activeBlock: {
+  leftActiveBlock: {
     backgroundColor: "#F97316",
   },
-  centerBlock: {
-    borderWidth: 1,
-    borderColor: "#111827",
+  rightActiveBlock: {
+    backgroundColor: "#3B82F6",
   },
+  centerActiveBlock: {
+    backgroundColor: "#C084FC",
+  },
+
   chunkStartBlock: {
     borderTopLeftRadius: 10,
     borderBottomLeftRadius: 10,
