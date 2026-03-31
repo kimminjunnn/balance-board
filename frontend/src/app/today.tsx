@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { View, Text, Image, StyleSheet, Pressable } from "react-native";
 import BottomSheet from "@gorhom/bottom-sheet";
-import SettingBottomSheet from "@/components/SettingBottomSheet";
+import SettingBottomSheet from "@/components/SettingBottomSheet/SettingBottomSheet";
 
 type todayState = "idle" | "setting" | "locked";
 

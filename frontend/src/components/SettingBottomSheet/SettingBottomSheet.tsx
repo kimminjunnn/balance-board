@@ -1,10 +1,10 @@
 import { forwardRef, useState } from "react";
-import { Text, View, StyleSheet, Pressable } from "react-native";
-import BottomSheet, {
-  BottomSheetView,
-  BottomSheetScrollView,
-} from "@gorhom/bottom-sheet";
-import ConfirmModal from "./common/ConfirmModal";
+import { StyleSheet } from "react-native";
+import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import ConfirmModal from "../common/ConfirmModal";
+
+import SettingBottomSheetHeader from "./SettingBottomSheetHeader";
+import SettingBottomSheetBody from "./SettingBottomSheetBody";
 
 type SettingBottomSheetProps = {
   onClose: () => void;
@@ -40,28 +40,8 @@ const SettingBottomSheet = forwardRef<BottomSheet, SettingBottomSheetProps>(
         onClose={onClose}
       >
         <BottomSheetScrollView style={styles.contentContainer}>
-          <View style={styles.header}>
-            <View>
-              <Text style={styles.title}>Set my Balance</Text>
-              <Text style={styles.description}>What matters to me today?</Text>
-            </View>
-
-            <View>
-              <Pressable
-                onPress={handleConfirmBtn}
-                style={({ pressed }) => [
-                  styles.confirmButton,
-                  pressed && styles.confirmButtonPressed,
-                ]}
-              >
-                <Text style={styles.confirmText}>Confirm</Text>
-              </Pressable>
-            </View>
-          </View>
-
-          <View style={styles.body}>
-            <Text>Body</Text>
-          </View>
+          <SettingBottomSheetHeader onPress={handleConfirmBtn} />
+          <SettingBottomSheetBody />
         </BottomSheetScrollView>
 
         <ConfirmModal
@@ -83,42 +63,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 24,
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 12,
-  },
-
-  title: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#222222",
-    marginBottom: 8,
-  },
-  description: {
-    fontSize: 15,
-    color: "#666666",
-    marginBottom: 24,
-  },
-
-  confirmButton: {
-    backgroundColor: "#222222",
-    minWidth: 78,
-    height: 36,
-    borderRadius: 999,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  confirmButtonPressed: {
-    opacity: 0.75,
-  },
-
-  confirmText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#FFFFFF",
   },
 
   body: {
