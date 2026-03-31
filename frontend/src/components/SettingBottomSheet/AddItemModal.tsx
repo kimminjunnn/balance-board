@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Modal,
   View,
@@ -6,6 +6,7 @@ import {
   TextInput,
   StyleSheet,
   Pressable,
+  Animated,
 } from "react-native";
 
 import BalanceCrystal from "@/components/BalanceCrystal";
@@ -33,8 +34,10 @@ export default function AddItemModal({
   const [secondValue, setSecondValue] = useState("");
   const [inputValue, setInputValue] = useState("");
 
-  // 핵심 상태 (0 ~ 10)
   const [balanceStartIndex, setBalanceStartIndex] = useState(5);
+
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const translateYAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (visible) {
@@ -43,8 +46,10 @@ export default function AddItemModal({
       setSecondValue("");
       setInputValue("");
       setBalanceStartIndex(5);
+      fadeAnim.setValue(1);
+      translateYAnim.setValue(0);
     }
-  }, [visible]);
+  }, [visible, fadeAnim, translateYAnim]);
 
   const trimmedInputValue = inputValue.trim();
   const isStepOneValid = step === 1 && trimmedInputValue.length > 0;
@@ -53,21 +58,57 @@ export default function AddItemModal({
   const leftPercent = 100 - balanceStartIndex * 10;
   const rightPercent = balanceStartIndex * 10;
 
+  const animateStepChange = (nextStep: Step, afterChange?: () => void) => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 0,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateYAnim, {
+        toValue: 8,
+        duration: 180,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      setStep(nextStep);
+      afterChange?.();
+
+      fadeAnim.setValue(0);
+      translateYAnim.setValue(8);
+
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateYAnim, {
+          toValue: 0,
+          duration: 220,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  };
+
   const handleNext = () => {
     const trimmed = inputValue.trim();
     if (!trimmed) return;
 
     if (step === 1) {
       setFirstValue(trimmed);
-      setInputValue("");
-      setStep(2);
+      animateStepChange(2, () => {
+        setInputValue("");
+      });
       return;
     }
 
     if (step === 2) {
       setSecondValue(trimmed);
-      setInputValue("");
-      setStep(3);
+      animateStepChange(3, () => {
+        setInputValue("");
+      });
     }
   };
 
@@ -119,7 +160,7 @@ export default function AddItemModal({
             onPress={handleNext}
             disabled={!isStepOneValid}
           >
-            <Text style={styles.buttonText}>Confirm</Text>
+            <Text style={styles.buttonText}>Done</Text>
           </Pressable>
         </>
       );
@@ -151,7 +192,7 @@ export default function AddItemModal({
             onPress={handleNext}
             disabled={!isStepTwoValid}
           >
-            <Text style={styles.buttonText}>Confirm</Text>
+            <Text style={styles.buttonText}>Done</Text>
           </Pressable>
         </>
       );
@@ -159,23 +200,21 @@ export default function AddItemModal({
 
     return (
       <>
-        {/* 크리스탈 + 퍼센트 */}
         <View style={styles.row}>
           <BalanceCrystal
             label={firstValue}
-            tone="orange"
             position="left"
             percent={leftPercent}
+            tone="orange"
           />
           <BalanceCrystal
             label={secondValue}
-            tone="blue"
             position="right"
             percent={rightPercent}
+            tone="blue"
           />
         </View>
 
-        {/* BalanceBar */}
         <View style={styles.balanceSection}>
           <BalanceBar
             value={balanceStartIndex}
@@ -210,7 +249,6 @@ export default function AddItemModal({
             </Pressable>
           </View>
 
-          {/* step indicator */}
           <View style={styles.stepRow}>
             {[1, 2, 3].map((v) => (
               <View
@@ -224,7 +262,14 @@ export default function AddItemModal({
             ))}
           </View>
 
-          {renderStepContent()}
+          <Animated.View
+            style={{
+              opacity: fadeAnim,
+              transform: [{ translateY: translateYAnim }],
+            }}
+          >
+            {renderStepContent()}
+          </Animated.View>
         </View>
       </View>
     </Modal>
@@ -266,7 +311,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#E5E7EB",
   },
-
   closeButtonText: {
     fontSize: 16,
     fontWeight: "700",
@@ -304,6 +348,8 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     padding: 14,
     marginBottom: 14,
+    fontSize: 15,
+    color: "#111827",
   },
   button: {
     backgroundColor: "#F97316",
@@ -317,6 +363,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontWeight: "800",
+    fontSize: 15,
   },
   balanceSection: {
     marginBottom: 20,
